@@ -506,15 +506,15 @@ function alternarTextoBotao() {
 }
 
 function EnviarServidor() {
-    var porta = 5000; // Porta em que o servidor Flask está sendo executado
     var enderecoIP = prompt("Por favor, insira o endereço IP local da sua máquina:");
     if (!enderecoIP) {
         alert("Endereço IP inválido. Certifique-se de inserir um endereço IP válido.");
         return;
     }
+
+    var porta = 5000; // Porta em que o servidor Flask está sendo executado
     var url = "http://" + enderecoIP + ":" + porta + "/enviar-dados"; // URL da rota de recebimento de dados no servidor Flask
 
-    // Dados a serem enviados para o servidor
     var dados = {
         chave1: 'valor1',
         chave2: 'valor2',
