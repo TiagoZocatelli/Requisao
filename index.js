@@ -505,34 +505,20 @@ function alternarTextoBotao() {
     }
 }
 
-function EnviarParaBackend() {
-    var enderecoIP = prompt("Por favor, insira o endereço IP do seu servidor backend:");
-    if (!enderecoIP) {
-        alert("Endereço IP inválido. Certifique-se de inserir um endereço IP válido.");
-        return;
-    }
-    var url = "http://" + enderecoIP + ":5000/receber-dados"; // Substitua 5000 pela porta do seu servidor Flask
-
-    // Dados a serem enviados para o backend
+function EnviarDados() {
     var dados = {
         chave1: 'valor1',
-        chave2: 'valor2',
-        // Adicione mais dados, se necessário
+        chave2: 'valor2'
     };
 
-    fetch(url, {
+    fetch('http://localhost:5000/enviar-dados', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(dados),
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Erro ao enviar os dados para o servidor');
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         console.log('Resposta do servidor:', data);
         // Faça algo com a resposta do servidor, se necessário
