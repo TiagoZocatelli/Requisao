@@ -505,15 +505,15 @@ function alternarTextoBotao() {
     }
 }
 
-function EnviarServidor() {
-    var enderecoIP = prompt("Por favor, insira o endereço IP local do seu servidor:");
+function EnviarParaBackend() {
+    var enderecoIP = prompt("Por favor, insira o endereço IP do seu servidor backend:");
     if (!enderecoIP) {
         alert("Endereço IP inválido. Certifique-se de inserir um endereço IP válido.");
         return;
     }
-    var url = "http://" + enderecoIP + ":5000/enviar-dados"; // Substitua 5000 pela porta do seu servidor Flask
+    var url = "http://" + enderecoIP + ":5000/receber-dados"; // Substitua 5000 pela porta do seu servidor Flask
 
-    // Dados a serem enviados para o servidor
+    // Dados a serem enviados para o backend
     var dados = {
         chave1: 'valor1',
         chave2: 'valor2',
