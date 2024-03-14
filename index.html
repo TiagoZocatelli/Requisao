@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Registro de Cupons</title>
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="estilos.css">
+<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsqr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Roboto:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="container">
+        <h2>Registro de Cupons</h2>
+        <div class="checkbox-container">
+            <input type="checkbox" id="validar-saldo" onchange="mostrarCampos()">
+            <label for="validar-saldo">Validar saldo da conta ao adicionar cupom</label>
+        </div>        
+        <div id="camposSaldo" style="display: none;">
+            <input type="text" id="saldo-inicial" placeholder="Digite o saldo inicial">
+            <button onclick="adicionarSaldo()">Adicionar Saldo</button>
+            <button onclick="limparSaldo()">Limpar Saldo</button>
+        </div>
+        <div id="saldo-atual-container" style="display: none;">
+            Saldo Atual: <span id="saldo-atual">0.00</span>
+        </div>            
+        <div id="tipoCupomContainer">
+            <label for="tipoCupom">Tipo de Cupom:</label>
+            <select id="tipoCupom" onchange="mostrarCampos()">
+                <option value="normal">Cupom Normal</option>
+                <option value="combustivel">Combustível (Convênio)</option>
+            </select>
+        </div>
+        <div id="tipoEmissaoContainer">
+            <label for="tipoEmissao">Tipo de Emissão:</label>
+            <select id="tipoEmissao" onchange="mostrarCampos()">
+                <option value="nfce">NFC-e</option>
+                <option value="sat">SAT</option>
+            </select>
+        </div>
+        <label for="nome">Nome do Funcionário:</label>
+        <input type="text" id="nome" placeholder="Digite seu nome">
+        <label for="data">Data:</label>
+        <input type="date" id="data">
+        <div id="camposCupomNormal">
+            <label for="valor">Valor:</label>
+            <input type="text" id="valor" placeholder="Digite o valor">
+        </div>
+        <div id="camposCombustivelConvenio" style="display: none;">
+            <label for="valorCombustivel">Valor do Combustível (Convênio):</label>
+            <input type="text" id="valorCombustivel" placeholder="Digite o valor do combustível">
+        </div>
+        
+        <label for="fotoCupom" class="file-upload-btn">Selecionar Imagens</label>
+        <input type="file" id="fotoCupom" accept="image/*" multiple style="display: none;">
+        <button onclick="adicionarCupom()">Adicionar Cupom</button>
+        <button onclick="limparCupons()">Limpar Cupons</button>
+        
+        <hr>
+        <h3>Cupons Registrados:</h3>
+        <button onclick="alternarVisibilidadeCupons()">Visualizar Cupons</button>
+        <ul id="listaCupons" style="display: none;"></ul>
+        <div id="visualizacaoImagem" class="modal">
+            <span class="fechar" onclick="fecharVisualizacaoImagem()">&times;</span>
+            <img id="imagemCupom" class="imagem-cupom">
+        </div>        
+        <div id="relatorio-container"></div>
+        <button id="visualizarImg" onclick="visualizarImagensCupons()">Visualizar Imagens</button> <!-- Botão para visualizar imagens -->
+        <button onclick="baixarFotosCupons()">Baixar Fotos dos Cupons</button>
+        <button onclick="gerarRelatorio('detalhado')">Gerar Relatório Detalhado</button>
+        <button onclick="gerarRelatorio('resumido')">Gerar Relatório Resumido</button>
+        <button onclick="limparRelatorio()">Limpar Relatório</button>
+        <button onclick="EnviarServidor()">Enviar para Servidor</button>
+    </div>
+    <footer>
+        <p>Direitos reservados &copy; 2024 Desenvolvido por Tiago Henrique Zocatelli </p>
+    </footer>    
+<script src="index.js"></script>
+</body>
+</html>
