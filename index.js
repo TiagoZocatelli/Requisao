@@ -506,31 +506,27 @@ function alternarTextoBotao() {
 }
 
 function EnviarServidor() {
-    // Obter os dados do formulário
-    var nome = document.getElementById('nome').value;
-    var data = document.getElementById('data').value;
-    var tipoCupom = document.getElementById('tipoCupom').value;
-    var tipoEmissao = document.getElementById('tipoEmissao').value;
-    var valor = document.getElementById('valor').value;
-    var valorCombustivel = document.getElementById('valorCombustivel').value;
-    
-    // Construir um objeto com os dados do formulário
-    var dadosFormulario = {
-        nome: nome,
-        data: data,
-        tipoCupom: tipoCupom,
-        tipoEmissao: tipoEmissao,
-        valor: valor,
-        valorCombustivel: valorCombustivel
+    var porta = 5000; // Porta em que o servidor Flask está sendo executado
+    var enderecoIP = prompt("Por favor, insira o endereço IP local da sua máquina:");
+    if (!enderecoIP) {
+        alert("Endereço IP inválido. Certifique-se de inserir um endereço IP válido.");
+        return;
+    }
+    var url = "http://" + enderecoIP + ":" + porta + "/enviar-dados"; // URL da rota de recebimento de dados no servidor Flask
+
+    // Dados a serem enviados para o servidor
+    var dados = {
+        chave1: 'valor1',
+        chave2: 'valor2',
+        // Adicione mais dados, se necessário
     };
 
-    // Enviar os dados para o servidor
-    fetch('http://localhost:8000/salvar-dados', {
+    fetch(url, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
         },
-        body: JSON.stringify(dadosFormulario)
+        body: JSON.stringify(dados),
     })
     .then(response => {
         if (!response.ok) {
@@ -539,19 +535,10 @@ function EnviarServidor() {
         return response.json();
     })
     .then(data => {
-        console.log('Dados enviados com sucesso:', data);
-        // Limpar o formulário após o envio bem-sucedido
-        limparFormulario();
+        console.log('Resposta do servidor:', data);
+        // Faça algo com a resposta do servidor, se necessário
     })
     .catch(error => {
         console.error('Erro ao enviar os dados para o servidor:', error);
     });
-}
-
-function limparFormulario() {
-    // Limpar os campos do formulário após o envio bem-sucedido
-    document.getElementById('nome').value = '';
-    document.getElementById('data').value = '';
-    document.getElementById('valor').value = '';
-    document.getElementById('valorCombustivel').value = '';
 }
