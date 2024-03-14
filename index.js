@@ -505,25 +505,98 @@ function alternarTextoBotao() {
     }
 }
 
-function EnviarDados() {
-    var dados = {
-        chave1: 'valor1',
-        chave2: 'valor2'
-    };
+// Corrigindo a definição da função para aceitar dois parâmetros: url e nomeArquivo
 
-    fetch('http://localhost:5000/enviar-dados', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dados),
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Resposta do servidor:', data);
-        // Faça algo com a resposta do servidor, se necessário
-    })
-    .catch(error => {
-        console.error('Erro ao enviar os dados para o servidor:', error);
+function exportarParaExcel() {
+    const wb = XLSX.utils.book_new();
+
+    // Cria uma nova planilha
+    const ws = XLSX.utils.aoa_to_sheet([
+        ["Nome do Funcionário", "Data", "Tipo de Cupom", "Tipo de Emissão", "Valor", "Valor do Combustível", "Valor Total"]
+    ]);
+
+    // Adiciona os dados dos cupons à planilha
+    cupons.forEach(cupom => {
+        const dataCupom = [
+            cupom.nomeFuncionario,
+            cupom.data,
+            cupom.tipoCupom,
+            cupom.tipoEmissao,
+            cupom.valor,
+            cupom.valorCombustivel,
+            cupom.valor + (cupom.valorCombustivel ? cupom.valorCombustivel : 0) // Calcula o valor total
+        ];
+        XLSX.utils.sheet_add_aoa(ws, [dataCupom], {origin: -1});
     });
+
+    // Adiciona a planilha ao livro de trabalho
+    XLSX.utils.book_append_sheet(wb, ws, "Cupons Registrados");
+
+    // Salva o arquivo Excel
+    XLSX.writeFile(wb, "cupons.xlsx");
 }
+
+
+function importarDoExcel() {
+    // Verifica se a opção "Validar Saldo" está ativada antes de prosseguir com a importação
+    if (document.getElementById('validar-saldo').checked) {
+        alert("Por favor, desative a opção 'Validar Saldo' antes de importar os cupons.");
+        return;
+    }
+
+    var fileInput = document.getElementById('arquivoExcel');
+    var file = fileInput.files[0];
+    
+    if (file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var data = new Uint8Array(e.target.result);
+            var workbook = XLSX.read(data, { type: 'array' });
+            var sheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[sheetName];
+            var cupons = XLSX.utils.sheet_to_json(worksheet);
+
+            // Limpa a lista de cupons antes de adicionar os novos
+            var listaCupons = document.getElementById('listaCupons');
+            listaCupons.innerHTML = '';
+
+            // Variável para armazenar o saldo inicial importado
+            var saldoInicialImportado = 0;
+
+            // Adiciona os cupons importados na lista de cupons
+            cupons.forEach(function(cupom) {
+                // Preencher variáveis do formulário com os dados do cupom
+                document.getElementById('nome').value = cupom['Nome do Funcionário'];
+                document.getElementById('data').value = cupom['Data'];
+                document.getElementById('tipoCupom').value = cupom['Tipo de Cupom'];
+                document.getElementById('tipoEmissao').value = cupom['Tipo de Emissão'];
+                document.getElementById('valor').value = cupom['Valor'];
+                document.getElementById('valorCombustivel').value = cupom['Valor do Combustível'];
+
+                // Se o cupom tiver a opção "Validar Saldo" ativada, atualiza o saldo inicial
+                if (cupom['Validar Saldo'] === 'Sim') {
+                    saldoInicialImportado += parseFloat(cupom['Valor']) + (cupom['Valor do Combustível'] ? parseFloat(cupom['Valor do Combustível']) : 0);
+                }
+
+                // Chamar a função para adicionar o cupom
+                adicionarCupom();
+            });
+
+            // Atualiza o saldo inicial se necessário
+            if (saldoInicialImportado > 0) {
+                document.getElementById('validar-saldo').checked = true;
+                document.getElementById('saldo-inicial').value = parseFloat(document.getElementById('saldo-atual').textContent) + saldoInicialImportado;
+                adicionarSaldo();
+            } else {
+                document.getElementById('validar-saldo').checked = false;
+                limparSaldo();
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+}
+
+
+
+
+

@@ -55,6 +55,8 @@
         
         <label for="fotoCupom" class="file-upload-btn">Selecionar Imagens</label>
         <input type="file" id="fotoCupom" accept="image/*" multiple style="display: none;">
+        <label for="arquivoExcel" class="file-upload-btn">Importar Excel</label>
+        <input type="file" id="arquivoExcel" accept=".xls,.xlsx" onchange="importarDoExcel()" style="display: none;">
         <button onclick="adicionarCupom()">Adicionar Cupom</button>
         <button onclick="limparCupons()">Limpar Cupons</button>
         
@@ -72,11 +74,12 @@
         <button onclick="gerarRelatorio('detalhado')">Gerar Relatório Detalhado</button>
         <button onclick="gerarRelatorio('resumido')">Gerar Relatório Resumido</button>
         <button onclick="limparRelatorio()">Limpar Relatório</button>
-        <button onclick="EnviarDados()">Enviar para Servidor</button>
+        <button onclick="exportarParaExcel()">Exportar para Excel</button>
     </div>
     <footer>
         <p>Direitos reservados &copy; 2024 Desenvolvido por Tiago Henrique Zocatelli </p>
     </footer>    
 <script src="index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
 </body>
 </html>
