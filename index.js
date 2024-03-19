@@ -8,68 +8,68 @@ let cuponsVisiveis = false;
 let fotosCupons = [];
 
 
-// Função para salvar os dados no localStorage
-async function salvarDadosLocalStorage() {
-    localStorage.setItem('funcionarioLogado', JSON.stringify(funcionarioLogado));
-    localStorage.setItem('cupons', JSON.stringify(cupons));
-    localStorage.setItem('valorTotal', valorTotal);
-    localStorage.setItem('valorCombustivelTotal', valorCombustivelTotal);
-    localStorage.setItem('saldoAtual', saldoAtual);
-    localStorage.setItem('valorInicial', valorInicial);
-    localStorage.setItem('cuponsVisiveis', cuponsVisiveis);
-    
-    // Converter as imagens para base64 e salvar no localStorage
-    const fotosBase64 = await Promise.all(fotosCupons.map(fotoToBase64));
-    localStorage.setItem('fotosCupons', JSON.stringify(fotosBase64));
+// Abrir ou criar o banco de dados
+let db;
+const request = indexedDB.open('registro-cupons-db', 1);
+
+request.onerror = function(event) {
+  console.error('Erro ao abrir o banco de dados:', event.target.errorCode);
+};
+
+request.onupgradeneeded = function(event) {
+  db = event.target.result;
+  // Criar um object store para armazenar os dados
+  const objectStore = db.createObjectStore('cupons', { keyPath: 'id', autoIncrement:true });
+  // Definir os índices, se necessário
+};
+
+request.onsuccess = function(event) {
+  db = event.target.result;
+  console.log('Banco de dados aberto com sucesso');
+  carregarDadosIndexedDB();
+};
+
+// Função para salvar os dados no IndexedDB
+function salvarDadosIndexedDB() {
+  const transaction = db.transaction(['cupons'], 'readwrite');
+  const objectStore = transaction.objectStore('cupons');
+  
+  // Limpar os dados existentes
+  objectStore.clear();
+  
+  // Adicionar novos dados
+  objectStore.add({ funcionarioLogado, cupons, valorTotal, valorCombustivelTotal, saldoAtual, valorInicial, cuponsVisiveis, fotosCupons });
 }
 
-// Função para carregar os dados do localStorage
-async function carregarDadosLocalStorage() {
-    funcionarioLogado = JSON.parse(localStorage.getItem('funcionarioLogado')) || null;
-    cupons = JSON.parse(localStorage.getItem('cupons')) || [];
-    valorTotal = parseFloat(localStorage.getItem('valorTotal')) || 0;
-    valorCombustivelTotal = parseFloat(localStorage.getItem('valorCombustivelTotal')) || 0;
-    saldoAtual = parseFloat(localStorage.getItem('saldoAtual')) || 0;
-    valorInicial = parseFloat(localStorage.getItem('valorInicial')) || 0;
-    cuponsVisiveis = JSON.parse(localStorage.getItem('cuponsVisiveis')) || false;
+// Função para carregar os dados do IndexedDB
+function carregarDadosIndexedDB() {
+  const transaction = db.transaction(['cupons'], 'readonly');
+  const objectStore = transaction.objectStore('cupons');
+  const request = objectStore.getAll();
 
-    // Carregar as imagens do localStorage e converter para objetos Blob
-    const fotosBase64 = JSON.parse(localStorage.getItem('fotosCupons')) || [];
-    fotosCupons = await Promise.all(fotosBase64.map(base64ToBlob));
+  request.onsuccess = function(event) {
+    const data = event.target.result;
+    if (data.length > 0) {
+      // Carregar os dados recuperados do IndexedDB
+      funcionarioLogado = data[0].funcionarioLogado;
+      cupons = data[0].cupons;
+      valorTotal = data[0].valorTotal;
+      valorCombustivelTotal = data[0].valorCombustivelTotal;
+      saldoAtual = data[0].saldoAtual;
+      valorInicial = data[0].valorInicial;
+      cuponsVisiveis = data[0].cuponsVisiveis;
+      fotosCupons = data[0].fotosCupons;
+      
+      // Atualizar a interface com os dados carregados
+      atualizarListaCupons();
+      atualizarSaldo();
+    }
+  };
 }
 
-// Função para converter uma imagem para base64
-function fotoToBase64(foto) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(foto);
-    });
-}
-
-// Função para converter uma base64 para Blob
-function base64ToBlob(base64) {
-    return fetch(`data:image/jpeg;base64,${base64}`)
-        .then(response => response.blob())
-        .catch(error => console.error('Erro ao converter base64 para Blob:', error));
-}
-
-// Função para adicionar uma foto de cupom
-function adicionarFotoCupom(foto) {
-    fotosCupons.push(foto);
-}
-
-// Chamar a função para carregar os dados do localStorage ao carregar a página
-document.addEventListener('DOMContentLoaded', async function () {
-    await carregarDadosLocalStorage();
-    atualizarListaCupons();
-    atualizarSaldo();
-});
-
-// Chamar a função para salvar os dados no localStorage ao fechar a página
+// Chamar a função para salvar os dados no IndexedDB ao fechar a página
 window.addEventListener('beforeunload', function () {
-    salvarDadosLocalStorage();
+  salvarDadosIndexedDB();
 });
 
 
