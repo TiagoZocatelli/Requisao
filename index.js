@@ -8,6 +8,71 @@ let cuponsVisiveis = false;
 let fotosCupons = [];
 
 
+// Função para salvar os dados no localStorage
+async function salvarDadosLocalStorage() {
+    localStorage.setItem('funcionarioLogado', JSON.stringify(funcionarioLogado));
+    localStorage.setItem('cupons', JSON.stringify(cupons));
+    localStorage.setItem('valorTotal', valorTotal);
+    localStorage.setItem('valorCombustivelTotal', valorCombustivelTotal);
+    localStorage.setItem('saldoAtual', saldoAtual);
+    localStorage.setItem('valorInicial', valorInicial);
+    localStorage.setItem('cuponsVisiveis', cuponsVisiveis);
+    
+    // Converter as imagens para base64 e salvar no localStorage
+    const fotosBase64 = await Promise.all(fotosCupons.map(fotoToBase64));
+    localStorage.setItem('fotosCupons', JSON.stringify(fotosBase64));
+}
+
+// Função para carregar os dados do localStorage
+async function carregarDadosLocalStorage() {
+    funcionarioLogado = JSON.parse(localStorage.getItem('funcionarioLogado')) || null;
+    cupons = JSON.parse(localStorage.getItem('cupons')) || [];
+    valorTotal = parseFloat(localStorage.getItem('valorTotal')) || 0;
+    valorCombustivelTotal = parseFloat(localStorage.getItem('valorCombustivelTotal')) || 0;
+    saldoAtual = parseFloat(localStorage.getItem('saldoAtual')) || 0;
+    valorInicial = parseFloat(localStorage.getItem('valorInicial')) || 0;
+    cuponsVisiveis = JSON.parse(localStorage.getItem('cuponsVisiveis')) || false;
+
+    // Carregar as imagens do localStorage e converter para objetos Blob
+    const fotosBase64 = JSON.parse(localStorage.getItem('fotosCupons')) || [];
+    fotosCupons = await Promise.all(fotosBase64.map(base64ToBlob));
+}
+
+// Função para converter uma imagem para base64
+function fotoToBase64(foto) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(foto);
+    });
+}
+
+// Função para converter uma base64 para Blob
+function base64ToBlob(base64) {
+    return fetch(`data:image/jpeg;base64,${base64}`)
+        .then(response => response.blob())
+        .catch(error => console.error('Erro ao converter base64 para Blob:', error));
+}
+
+// Função para adicionar uma foto de cupom
+function adicionarFotoCupom(foto) {
+    fotosCupons.push(foto);
+}
+
+// Chamar a função para carregar os dados do localStorage ao carregar a página
+document.addEventListener('DOMContentLoaded', async function () {
+    await carregarDadosLocalStorage();
+    atualizarListaCupons();
+    atualizarSaldo();
+});
+
+// Chamar a função para salvar os dados no localStorage ao fechar a página
+window.addEventListener('beforeunload', function () {
+    salvarDadosLocalStorage();
+});
+
+
 function alternarVisibilidadeCupons() {
     cuponsVisiveis = !cuponsVisiveis; // Inverte o valor da variável
     const listaCupons = document.getElementById('listaCupons');
@@ -337,11 +402,26 @@ function baixarFotosCupons() {
         return;
     }
 
+    // Declaração da variável dataFormatada fora do loop forEach
+    const dataAtual = new Date(); // Obtém a data atual
+    const dataFormatada = `${dataAtual.getFullYear()}-${(dataAtual.getMonth() + 1).toString().padStart(2, '0')}-${dataAtual.getDate().toString().padStart(2, '0')}`; // Formata a data como "AAAA-MM-DD"
+
     const zip = new JSZip();
     const folder = zip.folder("cupons");
 
     fotosCupons.forEach((foto, index) => {
-        const fileName = `cupom_${index + 1}.${foto.name.split('.').pop()}`;
+        const cupomCorrespondente = cupons[index]; // Obtém o cupom correspondente à foto
+        let valorCupom = 0;
+
+        if (cupomCorrespondente) {
+            if (cupomCorrespondente.tipoCupom === 'normal') {
+                valorCupom = cupomCorrespondente.valor.toFixed(2);
+            } else if (cupomCorrespondente.tipoCupom === 'combustivel') {
+                valorCupom = cupomCorrespondente.valorCombustivel.toFixed(2);
+            }
+        }
+
+        const fileName = `cupons_${dataFormatada}_${valorCupom}.${foto.name.split('.').pop()}`; // Nome do arquivo com a data atual e o valor do cupom
         folder.file(fileName, foto);
     });
 
@@ -353,8 +433,7 @@ function baixarFotosCupons() {
             // Cria um link para fazer o download do arquivo ZIP
             const link = document.createElement("a");
             link.href = zipUrl;
-            link.download = "cupons.zip";
-
+            link.download = `cupons_${dataFormatada}.zip`; // Nome do arquivo ZIP com a data atual
             // Adiciona o link ao corpo do documento
             document.body.appendChild(link);
 
@@ -371,6 +450,8 @@ function baixarFotosCupons() {
             console.error("Erro ao gerar arquivo zip:", error);
         });
 }
+
+
 
 function visualizarImagensCupons() {
     const modal = document.getElementById('visualizacaoImagem');
@@ -595,8 +676,4 @@ function importarDoExcel() {
         reader.readAsArrayBuffer(file);
     }
 }
-
-
-
-
 
